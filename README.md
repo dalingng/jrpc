@@ -49,6 +49,42 @@ fmt.Println(string(res))
 {"jsonrpc":"2.0","id":2,"result":"你好:单个请求"}
 ```
 
+入参和出参支持任何类型的数据
+```
+func (m *Main) HandleStr(ctx context.Context, req string) (string, error) {
+	return req, nil
+}
+
+func (m *Main) HandleStrArr(ctx context.Context, req []string) ([]string, error) {
+	return req, nil
+}
+// 或反回any
+func (m *Main) HandleStrArr(ctx context.Context, req int) (any, error) {
+	return req, nil
+}
+```
+错误处理
+```
+func (m *Main) HandleErr(ctx context.Context, req *int) (int, error) {
+    if req==nil{
+        return 0,errors.New("参数不能为空")
+    }
+	return req, nil
+}
+// {"jsonrpc":2.0,"id":1,"result":0,"error":{"code":500,"message":"参数不能为空"}}
+
+// 也可以用自定义的jsonrpc错误格式
+func (m *Main) HandleJsonErr(ctx context.Context, req struct{
+    Num *int
+}) (int, error) {
+    if req==nil{
+        return 0,jrpc.NewError(412, "Num参数不能为空", map[string]string{"Num":"Num不能为空"})
+    }
+	return req.Num, nil
+}
+// {"jsonrpc":2.0,"id":1,"result":0,"error":{"code":412,"message":"Num参数不能为空","data":{"Num":"Num不能为空"}}}
+```
+
 嵌套
 ===
 需要实现方法
