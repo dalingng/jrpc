@@ -9,7 +9,7 @@ jrpc是一个非常简单JSONRPC实现
 使用方法([]byte请求)
 ---
 
-```
+```golang
 import (
 	"context"
 	"github.com/dalingng/jrpc"
@@ -28,7 +28,7 @@ func (m *Main) Test(ctx context.Context, req struct {
 }
 ```
 
-```
+```golang
 jsonrpc := jrpc.JSONRPC{}
 // 注册方法
 jsonrpc.Register(&Main{})
@@ -44,13 +44,13 @@ res = jsonrpc.Call(context.Background(), []byte(req))
 fmt.Println(string(res))
 ```
 返回结果
-```
+```json
 [{"jsonrpc":"2.0","id":1,"result":"","error":{"code":10,"message":"请填写用户名"}},{"jsonrpc":"2.0","id":2,"result":"你好:大宁"}]
 {"jsonrpc":"2.0","id":2,"result":"你好:单个请求"}
 ```
 
 入参和出参支持任何类型的数据
-```
+```golang
 func (m *Main) HandleStr(ctx context.Context, req string) (string, error) {
 	return req, nil
 }
@@ -64,7 +64,7 @@ func (m *Main) HandleStrArr(ctx context.Context, req int) (any, error) {
 }
 ```
 错误处理
-```
+```golang
 func (m *Main) HandleErr(ctx context.Context, req *int) (int, error) {
     if req==nil{
         return 0,errors.New("参数不能为空")
@@ -88,11 +88,11 @@ func (m *Main) HandleJsonErr(ctx context.Context, req struct{
 嵌套
 ===
 需要实现方法
-```
+```golang
 ChildrenMethods() ([]any, error)
 ```
 例
-```
+```golang
 // 嵌套方法
 func (m *Main)ChildrenMethods() ([]any, error){
     return []any{
@@ -107,20 +107,20 @@ func (m *Info) Get(ctx context.Context)(string, error){
 }
 ```
 调用
-```
+```golang
 req:={"id":3,"jsonrpc":"2.0","method":  "Main.Info.Get","params":null}
 res := jsonrpc.Call(context.Background(), []byte(req))
 fmt.Println(string(res))
 ```
 返回结果
-```
+```json
 {"jsonrpc":"2.0","id":3,"result":"jrpc简单示例"}
 ```
 
 http
 ===
 
-```
+```golang
 http.HandleFunc("/api/endpoint", func(w http.ResponseWriter, r *http.Request) {
     body, err := io.ReadAll(r.Body)
     if err != nil {
