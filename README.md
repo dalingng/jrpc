@@ -77,7 +77,7 @@ func (m *Main) HandleErr(ctx context.Context, req *int) (int, error) {
 func (m *Main) HandleJsonErr(ctx context.Context, req struct{
     Num *int
 }) (int, error) {
-    if req==nil{
+    if req.Num==nil{
         return 0,jrpc.NewError(412, "Num参数不能为空", map[string]string{"Num":"Num不能为空"})
     }
 	return req.Num, nil
