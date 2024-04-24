@@ -171,6 +171,10 @@ func (rpc JSONRPC) requestHandle(ctx context.Context, req *Request) []byte {
 	methodName := req.Method
 	rpcMethod := rpc.GetMethod(methodName)
 
+	if methodName == "Methods" {
+		return GetMethods(rpc, req)
+	}
+
 	if rpcMethod == nil {
 		return NewResponseJsonErr(req, -32601, "程序错误:"+methodName+"方法不存在", nil)
 	}
