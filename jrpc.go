@@ -3,6 +3,7 @@ package jrpc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"reflect"
 	"strings"
 )
@@ -135,39 +136,36 @@ func NewResponseError(req *Request, code int, message string, data any) *Respons
 		},
 	}
 }
-func NewResponseJsonErr(req *Request, code int, message string, data any) []byte {
-	e := NewResponseError(req, code, message, data)
-	res, _ := json.Marshal(e)
-	return res
-}
 
-func (rpc JSONRPC) Call(ctx context.Context, jsonData []byte) []byte {
+func (rpc JSONRPC) CallJson(ctx context.Context, jsonData []byte) ([]byte, error) {
 	if len(jsonData) == 0 {
-		return []byte("")
+		return []byte(""), errors.New("请求数据不能为空")
 	}
 	if jsonData[0] == '[' {
 		reqs := []*Request{}
 		err := json.Unmarshal(jsonData, &reqs)
 		if err != nil {
-			return []byte(err.Error())
+			return []byte(err.Error()), err
 		}
-		resps := []json.RawMessage{}
+		resps := []*Response{}
 		for _, req := range reqs {
-			r := rpc.requestHandle(ctx, req)
+			r := rpc.Call(ctx, req)
 			resps = append(resps, r)
 		}
-		b, _ := json.Marshal(resps)
-		return b
+		b, err := json.Marshal(resps)
+		return b, err
 	}
 	req := &Request{}
 	err := json.Unmarshal(jsonData, req)
 	if err != nil {
-		return []byte(err.Error())
+		return []byte(err.Error()), errors.ErrUnsupported
 	}
-	return rpc.requestHandle(ctx, req)
+	resp := rpc.Call(ctx, req)
+	b, _ := json.Marshal(resp)
+	return b, nil
 }
 
-func (rpc JSONRPC) requestHandle(ctx context.Context, req *Request) []byte {
+func (rpc JSONRPC) Call(ctx context.Context, req *Request) *Response {
 	methodName := req.Method
 	rpcMethod := rpc.GetMethod(methodName)
 
@@ -176,14 +174,14 @@ func (rpc JSONRPC) requestHandle(ctx context.Context, req *Request) []byte {
 	}
 
 	if rpcMethod == nil {
-		return NewResponseJsonErr(req, -32601, "程序错误:"+methodName+"方法不存在", nil)
+		return NewResponseError(req, -32601, "程序错误:"+methodName+"方法不存在", nil)
 	}
 
 	if rpcMethod.method.Type.NumIn() > 3 {
-		return NewResponseJsonErr(req, -32601, "程序错误:方法参数数量不对", nil)
+		return NewResponseError(req, -32601, "程序错误:方法参数数量不对", nil)
 	}
 	if rpcMethod.method.Type.NumOut() != 2 {
-		return NewResponseJsonErr(req, -32601, "程序错误:方法返回数量不对", nil)
+		return NewResponseError(req, -32601, "程序错误:方法返回数量不对", nil)
 	}
 
 	params := make([]reflect.Value, rpcMethod.method.Type.NumIn())
@@ -209,7 +207,7 @@ func (rpc JSONRPC) requestHandle(ctx context.Context, req *Request) []byte {
 
 		err := json.Unmarshal(req.Params, elem)
 		if err != nil {
-			return NewResponseJsonErr(req, -32601, err.Error(), nil)
+			return NewResponseError(req, -32601, err.Error(), nil)
 		}
 		params[2] = argv
 	}
@@ -248,6 +246,6 @@ func (rpc JSONRPC) requestHandle(ctx context.Context, req *Request) []byte {
 		Result:  res,
 		Error:   rErr,
 	}
-	b, _ := json.Marshal(resp)
-	return b
+	// b, _ := json.Marshal(resp)
+	return resp
 }

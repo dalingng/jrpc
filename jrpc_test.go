@@ -13,12 +13,11 @@ import (
 type Main struct {
 }
 
-
 // 嵌套方法
-func (m *Main)ChildrenMethods() ([]any, error){
-    return []any{
-        &Info{},
-    },nil
+func (m *Main) ChildrenMethods() ([]any, error) {
+	return []any{
+		&Info{},
+	}, nil
 }
 
 func (m *Main) Test(ctx context.Context, req struct {
@@ -30,10 +29,11 @@ func (m *Main) Test(ctx context.Context, req struct {
 	return "你好:" + *req.Nickname, nil
 }
 
-type Info struct{
+type Info struct {
 }
-func (m *Info) Get(ctx context.Context)(string, error){
-    return "jrpc简单示例",nil
+
+func (m *Info) Get(ctx context.Context) (string, error) {
+	return "jrpc简单示例", nil
 }
 
 func Test(t *testing.T) {
@@ -45,7 +45,7 @@ func Test(t *testing.T) {
 	t.Log("=========请求================")
 	t.Log("\n" + string(req))
 
-	res := jsonrpc.Call(context.Background(), []byte(req))
+	res, _ := jsonrpc.CallJson(context.Background(), []byte(req))
 	t.Log("=========返回结果================")
 	t.Log("\n" + string(res))
 
@@ -69,7 +69,7 @@ func Test(t *testing.T) {
 				if err != nil {
 					t.Fatal(err.Error())
 				}
-				res := jsonrpc.Call(context.Background(), data)
+				res, _ := jsonrpc.CallJson(context.Background(), data)
 				enc.Encode(json.RawMessage(res))
 			}
 		}
@@ -99,6 +99,5 @@ func Test(t *testing.T) {
 	dec.Decode(&r)
 	t.Log("=========返回结果================")
 	t.Log("\n" + string(r))
-    
 
 }

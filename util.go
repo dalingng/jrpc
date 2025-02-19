@@ -1,8 +1,6 @@
 package jrpc
 
-import "encoding/json"
-
-func GetMethods(rpc JSONRPC, req *Request) []byte {
+func GetMethods(rpc JSONRPC, req *Request) *Response {
 	methods := []string{}
 	for _, v := range rpc {
 		methods = append(methods, v.name)
@@ -12,6 +10,6 @@ func GetMethods(rpc JSONRPC, req *Request) []byte {
 		Jsonrpc: req.Jsonrpc,
 		Result:  methods,
 	}
-	b, _ := json.Marshal(resp)
-	return b
+	// b, _ := json.Marshal(resp)
+	return resp
 }
