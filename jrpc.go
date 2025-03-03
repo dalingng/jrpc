@@ -125,6 +125,13 @@ func (rpc JSONRPC) RegisterMultiple(ms []any, prefix ...string) error {
 func (rpc JSONRPC) GetMethod(name string) *RPCMethod {
 	return rpc[name]
 }
+func (rpc JSONRPC) GetMethods() []string {
+	methods := []string{}
+	for _, v := range rpc {
+		methods = append(methods, v.name)
+	}
+	return methods
+}
 
 func NewResponseError(req *Request, code int, message string, data any) *Response {
 	return &Response{
